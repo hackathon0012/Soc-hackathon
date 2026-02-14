@@ -108,7 +108,7 @@ function AnomalyList() {
                           >
                             {anomaly.raw_message}
                           </Typography>
-                          {' — Source: '} {anomaly.raw_source} {' | Type: '} {anomaly.raw_log.event_type}
+                          {' — Source: '} {anomaly.raw_source} {' | Type: '} {anomaly.raw_event_type}
                         </React.Fragment>
                       }
                     />
