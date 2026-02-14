@@ -27,6 +27,7 @@ origins = [
     "http://localhost",
     "http://localhost:5173",  # React frontend's default port
     "http://127.0.0.1:5173",  # React frontend's default port
+    "https://project123-gilt.vercel.app" # Deployed Vercel frontend URL
 ]
 
 app.add_middleware(
