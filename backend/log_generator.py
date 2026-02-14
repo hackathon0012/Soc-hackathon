@@ -3,7 +3,7 @@ import datetime
 import time
 import json
 
-FASTAPI_URL = "http://127.0.0.1:8000"
+FASTAPI_URL = "https://soc-hackathon-backend.onrender.com"
 
 # --- Define a set of "normal" log entries ---
 NORMAL_LOGS = [

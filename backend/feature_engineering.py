@@ -1,5 +1,6 @@
 import datetime
 from typing import Dict, Any
+import math
 
 def extract_features(log_entry: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -26,15 +27,19 @@ def extract_features(log_entry: Dict[str, Any]) -> Dict[str, Any]:
         features["login_hour"] = timestamp.hour
         features["day_of_week"] = timestamp.weekday() # Monday is 0, Sunday is 6
         features["is_weekend"] = 1 if timestamp.weekday() >= 5 else 0
-        features["time_of_day_sin"] = datetime.datetime.now().hour / 23 # Placeholder for cyclical feature
-        features["time_of_day_cos"] = datetime.datetime.now().minute / 59 # Placeholder for cyclical feature
+        
+        # Cyclical features for time of day
+        hour_in_day = timestamp.hour + timestamp.minute / 60
+        hour_radians = (hour_in_day / 24) * (2 * math.pi)
+        features["time_of_day_sin"] = math.sin(hour_radians)
+        features["time_of_day_cos"] = math.cos(hour_radians)
     else:
         # Default values if timestamp is invalid
         features["login_hour"] = -1
         features["day_of_week"] = -1
         features["is_weekend"] = 0
-        features["time_of_day_sin"] = 0
-        features["time_of_day_cos"] = 0
+        features["time_of_day_sin"] = 0.0
+        features["time_of_day_cos"] = 0.0
 
     # --- User/Account-based Features ---
     # Assume 'metadata' might contain 'user' or 'is_admin'
