@@ -9,7 +9,7 @@ function DashboardSummary() {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/risk-dashboard-summary');
+        const response = await fetch(`${import.meta.env.VITE_FASTAPI_URL}/risk-dashboard-summary`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

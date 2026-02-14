@@ -30,7 +30,7 @@ function LogIngestion() {
         metadata: parsedMetadata,
       };
 
-      const response = await fetch('http://127.0.0.1:8000/ingest-log', {
+      const response = await fetch(`${import.meta.env.VITE_FASTAPI_URL}/ingest-log`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ function LogIngestion() {
   const handleTrainModel = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/train-model', {
+      const response = await fetch(`${import.meta.env.VITE_FASTAPI_URL}/train-model`, {
         method: 'POST',
       });
       if (!response.ok) {

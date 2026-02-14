@@ -17,7 +17,7 @@ function AnomalyList() {
 
   const fetchAnomalies = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/anomalies');
+      const response = await fetch(`${import.meta.env.VITE_FASTAPI_URL}/anomalies`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -41,7 +41,7 @@ function AnomalyList() {
     setReportLoading(true);
     setCurrentReport(null);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/generate-incident-report/${logId}`);
+      const response = await fetch(`${import.meta.env.VITE_FASTAPI_URL}/generate-incident-report/${logId}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
