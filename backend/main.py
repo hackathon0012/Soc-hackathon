@@ -139,11 +139,11 @@ async def ingest_log(log_entry: LogEntry, db: Session = Depends(get_db)):
         raw_message=log_entry.message,
         raw_metadata=log_entry.metadata,
         features=features,
-        anomaly_score_ml=anomaly_score,
+        anomaly_score_ml=float(anomaly_score),
         is_anomaly_ml=is_anomaly_ml,
         matched_rules=matched_rules,
         is_anomaly_rule=is_anomaly_rule,
-        final_risk_score=final_risk_score,
+        final_risk_score=float(final_risk_score),
         is_anomaly=is_anomaly,
         processed_at=datetime.datetime.now()
     )
