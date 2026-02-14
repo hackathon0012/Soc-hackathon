@@ -112,6 +112,7 @@ async def ingest_log(log_entry: LogEntry, db: Session = Depends(get_db)):
     anomaly_score = 0.0
     is_anomaly_ml = False # Flag from ML model
     if anomaly_detector.model:
+        print(f"Features before prediction: {features}") # Debugging line
         anomaly_score = anomaly_detector.predict(features)
         # Isolation Forest's decision_function: negative values are usually anomalies
         # The 'offset_' attribute is the threshold learned by the model
