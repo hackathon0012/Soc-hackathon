@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Request, HTTPException, Depends
 from pydantic import BaseModel
 import datetime
@@ -14,8 +17,8 @@ from llm_reporter import generate_incident_report
 from fastapi.middleware.cors import CORSMiddleware
 
 # Database imports
-from .database import SessionLocal, engine, Base
-from .models import ProcessedLog # Import our SQLAlchemy model
+from database import SessionLocal, engine, Base
+from models import ProcessedLog # Import our SQLAlchemy model
 
 app = FastAPI(title="AI-SOC Lite Backend")
 
