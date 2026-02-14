@@ -13,7 +13,25 @@ def extract_features(log_entry: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         A dictionary of extracted features.
     """
-    features = {}
+    DEFAULT_FEATURES = {
+        "login_hour": 0,
+        "day_of_week": 0,
+        "is_weekend": 0,
+        "time_of_day_sin": 0.0,
+        "time_of_day_cos": 0.0,
+        "is_admin_account": 0,
+        "failed_login_count_5min": 0,
+        "device_familiarity_score": 0,
+        "is_vpn_source": 0,
+        "geo_location_risk_score": 0,
+        "event_type_authentication": 0,
+        "event_type_file_access": 0,
+        "event_type_process_exec": 0,
+        "event_type_privilege_escalation": 0,
+        # Add any other features here with a default numerical value
+    }
+    
+    features = DEFAULT_FEATURES.copy() # Start with all default features
 
     # --- Time-based Features ---
     timestamp = log_entry.get("timestamp")
@@ -21,7 +39,8 @@ def extract_features(log_entry: Dict[str, Any]) -> Dict[str, Any]:
         try:
             timestamp = datetime.datetime.fromisoformat(timestamp)
         except ValueError:
-            timestamp = datetime.datetime.now() # Fallback
+            # If parsing fails, use current time as a fallback
+            timestamp = datetime.datetime.now() 
 
     if isinstance(timestamp, datetime.datetime):
         features["login_hour"] = timestamp.hour
@@ -33,36 +52,28 @@ def extract_features(log_entry: Dict[str, Any]) -> Dict[str, Any]:
         hour_radians = (hour_in_day / 24) * (2 * math.pi)
         features["time_of_day_sin"] = math.sin(hour_radians)
         features["time_of_day_cos"] = math.cos(hour_radians)
-    else:
-        # Default values if timestamp is invalid
-        features["login_hour"] = -1
-        features["day_of_week"] = -1
-        features["is_weekend"] = 0
-        features["time_of_day_sin"] = 0.0
-        features["time_of_day_cos"] = 0.0
 
     # --- User/Account-based Features ---
-    # Assume 'metadata' might contain 'user' or 'is_admin'
     metadata = log_entry.get("metadata", {})
     user = metadata.get("user", "").lower()
     features["is_admin_account"] = 1 if user == "admin" or "root" in user else 0 # Simple heuristic
-    features["failed_login_count_5min"] = 0 # Placeholder: This would require stateful tracking
-    features["device_familiarity_score"] = 0 # Placeholder: Would need user-device history
+    # "failed_login_count_5min" and "device_familiarity_score" remain 0 as they are placeholders
 
     # --- Source/Network-based Features ---
     source = log_entry.get("source", "").lower()
     features["is_vpn_source"] = 1 if "vpn" in source else 0 # Simple heuristic
-    features["geo_location_risk_score"] = 0 # Placeholder: Would need IP geo-location lookup
+    # "geo_location_risk_score" remains 0 as it's a placeholder
 
     # --- Event Type Features ---
     event_type = log_entry.get("event_type", "").lower()
-    features["event_type_authentication"] = 1 if "auth" in event_type else 0
-    features["event_type_file_access"] = 1 if "file" in event_type else 0
-    features["event_type_process_exec"] = 1 if "process" in event_type or "exec" in event_type else 0
-    features["event_type_privilege_escalation"] = 1 if "privilege" in event_type or "escalation" in event_type else 0
-
-    # For demonstration, we'll ensure all features are numerical
-    # In a real system, categorical features would need encoding (e.g., one-hot encoding)
+    if "auth" in event_type:
+        features["event_type_authentication"] = 1
+    if "file" in event_type:
+        features["event_type_file_access"] = 1
+    if "process" in event_type or "exec" in event_type:
+        features["event_type_process_exec"] = 1
+    if "privilege" in event_type or "escalation" in event_type:
+        features["event_type_privilege_escalation"] = 1
 
     return features
 
