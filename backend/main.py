@@ -41,6 +41,8 @@ app.add_middleware(
 # Initialize the Anomaly Detector (model will be trained/loaded via DB)
 anomaly_detector = AnomalyDetector(contamination=0.01)
 
+MODEL_PATH = "anomaly_model.joblib" # Path to save/load the trained model
+
 # Dependency to get a database session
 def get_db():
     db = SessionLocal()
@@ -53,9 +55,7 @@ def get_db():
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine) # Create all tables if they don't exist
-    # Load model if available (for persistence across restarts)
-    # For now, we'll keep training as an explicit endpoint.
-    # In a real app, model persistence would be handled here.
+    anomaly_detector.load_model(MODEL_PATH) # Load model on startup
 
 # Define a model for the incoming log (same as before)
 class LogEntry(BaseModel):
@@ -189,6 +189,7 @@ async def train_model(db: Session = Depends(get_db)):
 
     try:
         anomaly_detector.train(all_features)
+        anomaly_detector.save_model(MODEL_PATH) # Save model after training
         return {"status": "success", "message": f"Anomaly detection model trained on {len(all_features)} samples."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error training model: {str(e)}")
