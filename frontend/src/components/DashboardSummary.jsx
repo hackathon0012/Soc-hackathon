@@ -44,54 +44,67 @@ function DashboardSummary() {
     return <Typography>No summary data available.</Typography>;
   }
 
+  const getRiskColor = (score) => {
+    if (score >= 80) return 'error.main'; // Critical
+    if (score >= 60) return 'warning.main'; // High
+    if (score >= 30) return 'info.main';    // Medium
+    return 'success.main';                  // Low
+  };
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} md={4}>
-        <Card>
+        <Card raised>
           <CardContent>
-            <Typography color="textSecondary" gutterBottom>
+            <Typography color="textSecondary" gutterBottom variant="h6">
               Total Logs Processed
             </Typography>
-            <Typography variant="h5" component="div">
+            <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
               {summary.total_logs}
             </Typography>
           </CardContent>
         </Card>
       </Grid>
       <Grid item xs={12} md={4}>
-        <Card>
+        <Card raised>
           <CardContent>
-            <Typography color="textSecondary" gutterBottom>
+            <Typography color="textSecondary" gutterBottom variant="h6">
               Total Anomalies Detected
             </Typography>
-            <Typography variant="h5" component="div">
+            <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', color: summary.total_anomalies > 0 ? 'error.main' : 'success.main' }}>
               {summary.total_anomalies}
             </Typography>
           </CardContent>
         </Card>
       </Grid>
       <Grid item xs={12} md={4}>
-        <Card>
+        <Card raised>
           <CardContent>
-            <Typography color="textSecondary" gutterBottom>
+            <Typography color="textSecondary" gutterBottom variant="h6">
               Average Risk Score
             </Typography>
-            <Typography variant="h5" component="div">
+            <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', color: getRiskColor(parseFloat(summary.average_risk_score)) }}>
               {summary.average_risk_score}
             </Typography>
           </CardContent>
         </Card>
       </Grid>
       <Grid item xs={12}>
-        <Card>
+        <Card raised>
           <CardContent>
-            <Typography color="textSecondary" gutterBottom>
+            <Typography color="textSecondary" gutterBottom variant="h6">
               Risk Distribution
             </Typography>
-            <Grid container spacing={2}>
+            <Grid container spacing={1} sx={{ mt: 2 }}>
               {Object.entries(summary.risk_distribution).map(([level, count]) => (
-                <Grid item xs={12} sm={3} key={level}>
-                  <Typography variant="h6">{level}: {count}</Typography>
+                <Grid item xs={6} sm={3} key={level}>
+                  <Typography variant="body1" sx={{ color: getRiskColor(
+                    level === 'Critical' ? 100 :
+                    level === 'High' ? 70 :
+                    level === 'Medium' ? 45 : 10
+                  ) }}>
+                    {level}: {count}
+                  </Typography>
                 </Grid>
               ))}
             </Grid>

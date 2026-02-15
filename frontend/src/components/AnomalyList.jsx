@@ -82,6 +82,13 @@ function AnomalyList() {
     return <Typography color="error">Error: {error.message}</Typography>;
   }
 
+  const getRiskColor = (score) => {
+    if (score >= 80) return 'error.main'; // Critical
+    if (score >= 60) return 'warning.main'; // High
+    if (score >= 30) return 'info.main';    // Medium
+    return 'success.main';                  // Low
+  };
+
   return (
     <Card sx={{ mt: 4 }}>
       <CardContent>
@@ -92,28 +99,57 @@ function AnomalyList() {
           <Typography>No anomalies detected yet.</Typography>
         ) : (
           <List>
+            <ListItem sx={{ fontWeight: 'bold', borderBottom: 1, borderColor: 'divider' }}>
+              <Grid container alignItems="center" spacing={2}>
+                <Grid item xs={12} sm={2}>
+                  <Typography variant="subtitle2">Log ID</Typography>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <Typography variant="subtitle2">Risk Score</Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2">Message</Typography>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <Typography variant="subtitle2">Source</Typography>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <Typography variant="subtitle2">Type</Typography>
+                </Grid>
+              </Grid>
+            </ListItem>
             {anomalies.map((anomaly) => (
               <ListItem key={anomaly.id} divider>
                 <Grid container alignItems="center" spacing={2}>
-                  <Grid item xs={12} sm={8}>
+                  <Grid item xs={12} sm={2}>
+                    <Typography variant="body2">{anomaly.id}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', color: getRiskColor(anomaly.final_risk_score) }}>
+                      {anomaly.final_risk_score.toFixed(2)}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
                     <ListItemText
-                      primary={`Log ID: ${anomaly.id} - Risk Score: ${anomaly.final_risk_score.toFixed(2)}`}
-                      secondary={
-                        <React.Fragment>
-                          <Typography
-                            sx={{ display: 'inline' }}
-                            component="span"
-                            variant="body2"
-                            color="text.primary"
-                          >
-                            {anomaly.raw_message}
-                          </Typography>
-                          {' — Source: '} {anomaly.raw_source} {' | Type: '} {anomaly.raw_event_type}
-                        </React.Fragment>
+                      primary={
+                        <Typography
+                          sx={{ display: 'inline' }}
+                          component="span"
+                          variant="body2"
+                          color="text.primary"
+                        >
+                          {anomaly.raw_message}
+                        </Typography>
                       }
                     />
                   </Grid>
-                  <Grid item xs={12} sm={4} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                  <Grid item xs={12} sm={2}>
+                    <Typography variant="body2">{anomaly.raw_source}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2}>
+                    <Typography variant="body2">{anomaly.raw_event_type}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sx={{ textAlign: 'right', mt: 1 }}>
                     <Button
                       variant="contained"
                       size="small"
