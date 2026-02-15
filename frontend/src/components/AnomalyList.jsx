@@ -83,10 +83,10 @@ function AnomalyList() {
   }
 
   const getRiskColor = (score) => {
-    if (score >= 80) return 'error.main'; // Critical
-    if (score >= 60) return 'warning.main'; // High
-    if (score >= 30) return 'info.main';    // Medium
-    return 'success.main';                  // Low
+    if (score >= 80) return '#f44336'; // Critical (red)
+    if (score >= 60) return '#ff9800'; // High (orange)
+    if (score >= 30) return '#2196f3';    // Medium (blue)
+    return '#4caf50';                  // Low (green)
   };
 
   return (
@@ -119,48 +119,49 @@ function AnomalyList() {
               </Grid>
             </ListItem>
             {anomalies.map((anomaly) => (
-              <ListItem key={anomaly.id} divider>
-                <Grid container alignItems="center" spacing={2}>
-                  <Grid item xs={12} sm={2}>
-                    <Typography variant="body2">{anomaly.id}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold', color: getRiskColor(anomaly.final_risk_score) }}>
-                      {anomaly.final_risk_score.toFixed(2)}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <ListItemText
-                      primary={
-                        <Typography
-                          sx={{ display: 'inline' }}
-                          component="span"
-                          variant="body2"
-                          color="text.primary"
-                        >
-                          {anomaly.raw_message}
+              <Card key={anomaly.id} raised sx={{ mb: 2, borderColor: getRiskColor(anomaly.final_risk_score), borderLeft: 5 }}>
+                <CardContent>
+                  <Grid container spacing={1} alignItems="center">
+                    <Grid item xs={12} sm={4} md={3}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: getRiskColor(anomaly.final_risk_score) }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                          Log ID: {anomaly.id}
                         </Typography>
-                      }
-                    />
+                      </Stack>
+                      <Typography variant="body2" color="textSecondary">
+                        Risk: <Box component="span" sx={{ fontWeight: 'bold', color: getRiskColor(anomaly.final_risk_score) }}>{anomaly.final_risk_score.toFixed(2)}</Box>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={8} md={5}>
+                      <Typography variant="body2">
+                        <Box component="span" sx={{ fontWeight: 'bold' }}>Time:</Box> {new Date(anomaly.raw_timestamp).toLocaleString()}
+                      </Typography>
+                      <Typography variant="body2">
+                        <Box component="span" sx={{ fontWeight: 'bold' }}>Source:</Box> {anomaly.raw_source}
+                      </Typography>
+                      <Typography variant="body2">
+                        <Box component="span" sx={{ fontWeight: 'bold' }}>Type:</Box> {anomaly.raw_event_type}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleGenerateReport(anomaly.id)}
+                        disabled={reportLoading}
+                      >
+                        {reportLoading ? <CircularProgress size={24} /> : 'Generate Report'}
+                      </Button>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        <Box component="span" sx={{ fontWeight: 'bold' }}>Message:</Box> {anomaly.raw_message}
+                      </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <Typography variant="body2">{anomaly.raw_source}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <Typography variant="body2">{anomaly.raw_event_type}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sx={{ textAlign: 'right', mt: 1 }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => handleGenerateReport(anomaly.id)}
-                      disabled={reportLoading}
-                    >
-                      {reportLoading ? <CircularProgress size={24} /> : 'Generate Report'}
-                    </Button>
-                  </Grid>
-                </Grid>
-              </ListItem>
+                </CardContent>
+              </Card>
             ))}
           </List>
         )}
