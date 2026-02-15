@@ -254,7 +254,7 @@ async def get_risk_dashboard_summary(db: Session = Depends(get_db)):
     return {
         "total_logs": total_logs,
         "total_anomalies": total_anomalies,
-        "average_risk_score": f"{average_risk_score:.2f}",
+        "average_risk_score": f"{float(average_risk_score):.2f}",
         "risk_distribution": risk_distribution
     }
 
