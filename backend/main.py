@@ -65,6 +65,26 @@ class LogEntry(BaseModel):
     message: str
     metadata: Dict[str, Any] = {}
 
+# Pydantic model for response serialization
+class ProcessedLogResponse(BaseModel):
+    id: int
+    raw_timestamp: datetime.datetime
+    raw_source: str
+    raw_event_type: str
+    raw_message: str
+    raw_metadata: Dict[str, Any]
+    features: Dict[str, Any]
+    anomaly_score_ml: float
+    is_anomaly_ml: bool
+    matched_rules: List[Dict[str, Any]]
+    is_anomaly_rule: bool
+    final_risk_score: float
+    is_anomaly: bool
+    processed_at: datetime.datetime
+
+    class Config:
+        from_attributes = True # Allow Pydantic to read from SQLAlchemy models
+
 # --- Helper to calculate risk score ---
 def calculate_risk_score(anomaly_score: float, matched_rules: List[Dict[str, Any]]) -> float:
     # Scale anomaly_score from Isolation Forest's range to 0-100
@@ -165,14 +185,14 @@ async def ingest_log(log_entry: LogEntry, db: Session = Depends(get_db)):
         "is_anomaly": is_anomaly
     }
 
-@app.get("/logs")
+@app.get("/logs", response_model=List[ProcessedLogResponse])
 async def get_logs(db: Session = Depends(get_db)):
     """
     Retrieve all ingested logs with their extracted features, anomaly scores, and risk scores.
     """
     logs = db.query(ProcessedLog).order_by(ProcessedLog.processed_at.desc()).all()
     # Convert SQLAlchemy objects to dict for JSON serialization
-    return {"logs": [log.__dict__ for log in logs]}
+    return logs # FastAPI will serialize this list using ProcessedLogResponse
 
 @app.post("/train-model")
 async def train_model(db: Session = Depends(get_db)):
@@ -194,13 +214,13 @@ async def train_model(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error training model: {str(e)}")
 
-@app.get("/anomalies")
+@app.get("/anomalies", response_model=List[ProcessedLogResponse])
 async def get_anomalies(db: Session = Depends(get_db)):
     """
     Retrieve all logs identified as anomalies (either by ML or rules), sorted by risk score.
     """
     anomalies = db.query(ProcessedLog).filter(ProcessedLog.is_anomaly == True).order_by(ProcessedLog.final_risk_score.desc()).all()
-    return {"anomalies": [log.__dict__ for log in anomalies], "count": len(anomalies)}
+    return anomalies # FastAPI will serialize this list using ProcessedLogResponse
 
 @app.get("/risk-dashboard-summary")
 async def get_risk_dashboard_summary(db: Session = Depends(get_db)):
