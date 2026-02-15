@@ -1,33 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Grid, CircularProgress, Box } from '@mui/material';
+import { Card, CardContent, Typography, Grid, CircularProgress, Box, useTheme } from '@mui/material';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 function DashboardSummary() {
   const [summary, setSummary] = useState(null);
+  const [logData, setLogData] = useState([]); // New state for historical logs
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const theme = useTheme();
 
   useEffect(() => {
-    const fetchSummary = async () => {
+    const fetchSummaryAndLogs = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_FASTAPI_URL}/risk-dashboard-summary`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // Fetch summary data
+        const summaryResponse = await fetch(`${import.meta.env.VITE_FASTAPI_URL}/risk-dashboard-summary`);
+        if (!summaryResponse.ok) {
+          throw new Error(`HTTP error! status: ${summaryResponse.status}`);
         }
-        const data = await response.json();
-        setSummary(data);
+        const summaryData = await summaryResponse.json();
+        setSummary(summaryData);
+
+        // Fetch historical logs
+        const logsResponse = await fetch(`${import.meta.env.VITE_FASTAPI_URL}/logs`);
+        if (!logsResponse.ok) {
+          throw new Error(`HTTP error! status: ${logsResponse.status}`);
+        }
+        const logsData = await logsResponse.json();
+        setLogData(logsData.logs);
+
       } catch (e) {
         setError(e);
-        console.error("Failed to fetch dashboard summary:", e);
+        console.error("Failed to fetch dashboard data:", e);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSummary();
-    const interval = setInterval(fetchSummary, 5000); // Refresh every 5 seconds
+    fetchSummaryAndLogs();
+    const interval = setInterval(fetchSummaryAndLogs, 5000); // Refresh every 5 seconds
     return () => clearInterval(interval);
   }, []);
 
+  // Process logData for log volume chart
+  const logVolumeMap = logData.reduce((acc, log) => {
+    const date = new Date(log.processed_at).toLocaleDateString();
+    acc[date] = (acc[date] || 0) + 1;
+    return acc;
+  }, {});
+
+  const logVolumeChartData = Object.entries(logVolumeMap).map(([date, count]) => ({
+    date,
+    count,
+  })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -45,11 +70,25 @@ function DashboardSummary() {
   }
 
   const getRiskColor = (score) => {
-    if (score >= 80) return 'error.main'; // Critical
-    if (score >= 60) return 'warning.main'; // High
-    if (score >= 30) return 'info.main';    // Medium
-    return 'success.main';                  // Low
+    if (score >= 80) return theme.palette.error.main; // Critical
+    if (score >= 60) return theme.palette.warning.main; // High
+    if (score >= 30) return theme.palette.info.main;    // Medium
+    return theme.palette.success.main;                  // Low
   };
+
+  // Define colors for the pie chart slices
+  const COLORS = {
+    'Critical': theme.palette.error.main,
+    'High': theme.palette.warning.main,
+    'Medium': theme.palette.info.main,
+    'Low': theme.palette.success.main,
+  };
+
+  // Prepare data for the pie chart
+  const pieChartData = Object.entries(summary.risk_distribution).map(([name, value]) => ({
+    name,
+    value,
+  }));
 
   return (
     <Grid container spacing={3}>
@@ -93,21 +132,30 @@ function DashboardSummary() {
         <Card raised>
           <CardContent>
             <Typography color="textSecondary" gutterBottom variant="h6">
-              Risk Distribution
+              Log Volume Over Time
             </Typography>
-            <Grid container spacing={1} sx={{ mt: 2 }}>
-              {Object.entries(summary.risk_distribution).map(([level, count]) => (
-                <Grid item xs={6} sm={3} key={level}>
-                  <Typography variant="body1" sx={{ color: getRiskColor(
-                    level === 'Critical' ? 100 :
-                    level === 'High' ? 70 :
-                    level === 'Medium' ? 45 : 10
-                  ) }}>
-                    {level}: {count}
-                  </Typography>
-                </Grid>
-              ))}
-            </Grid>
+            {logVolumeChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart
+                  data={logVolumeChartData}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="count" stroke={theme.palette.primary.main} activeDot={{ r: 8 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <Typography>No log data to display volume over time.</Typography>
+            )}
           </CardContent>
         </Card>
       </Grid>

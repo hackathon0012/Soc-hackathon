@@ -1,7 +1,9 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Container, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container, Box, IconButton } from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 
-function Layout({ children }) {
+function Layout({ children, toggleColorMode, currentMode }) {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -9,6 +11,9 @@ function Layout({ children }) {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             AI-SOC Lite Dashboard
           </Typography>
+          <IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
+            {currentMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
